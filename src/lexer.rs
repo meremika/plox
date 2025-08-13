@@ -71,7 +71,7 @@ static KEYWORDS: phf::Map<&'static str, Token> = phf_map! {
 };
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum LexError {
+pub enum Error {
     UnterminatedStringLiteral,
     UnexpectedInput,
 }
@@ -86,7 +86,7 @@ fn is_valid_identifier(c: char) -> bool {
 }
 
 impl<'s> Iterator for Lexer<'s> {
-    type Item = Result<Token<'s>, LexError>;
+    type Item = Result<Token<'s>, Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.finished {
@@ -146,13 +146,13 @@ impl<'s> Iterator for Lexer<'s> {
                     let literal = &self.rest['"'.len_utf8()..end + '"'.len_utf8()];
                     if literal.contains('\n') {
                         self.finished = true;
-                        return Some(Err(LexError::UnterminatedStringLiteral));
+                        return Some(Err(Error::UnterminatedStringLiteral));
                     }
                     Some((Token::String(literal), end + 2 * '"'.len_utf8()))
                 }
                 None => {
                     self.finished = true;
-                    return Some(Err(LexError::UnterminatedStringLiteral));
+                    return Some(Err(Error::UnterminatedStringLiteral));
                 }
             },
 
@@ -202,7 +202,7 @@ impl<'s> Iterator for Lexer<'s> {
 
             _ => {
                 self.finished = true;
-                return Some(Err(LexError::UnexpectedInput));
+                return Some(Err(Error::UnexpectedInput));
             }
         } {
             self.rest = &self.rest[consumed..];
@@ -330,7 +330,7 @@ mod tests {
     fn it_fails_on_unterminated_string_literals() {
         let source = "\"Hello World!";
         let mut lexer = Lexer::new(source);
-        assert_eq!(lexer.next(), Some(Err(LexError::UnterminatedStringLiteral)));
+        assert_eq!(lexer.next(), Some(Err(Error::UnterminatedStringLiteral)));
         assert_eq!(lexer.next(), None);
     }
 
@@ -338,7 +338,7 @@ mod tests {
     fn it_fails_on_multiline_string_literals() {
         let source = "\"Hello\nWorld!\"";
         let mut lexer = Lexer::new(source);
-        assert_eq!(lexer.next(), Some(Err(LexError::UnterminatedStringLiteral)));
+        assert_eq!(lexer.next(), Some(Err(Error::UnterminatedStringLiteral)));
         assert_eq!(lexer.next(), None);
     }
 
