@@ -381,6 +381,15 @@ mod tests {
     }
 
     #[test]
+    fn it_tokenizes_negative_number_literals() {
+        let source = "-42";
+        let mut lexer = Lexer::new(source);
+        assert_eq!(lexer.next(), Some(Ok(Token::Minus)));
+        assert_eq!(lexer.next(), Some(Ok(Token::Number(42.))));
+        assert_eq!(lexer.next(), Some(Ok(Token::Eof)));
+    }
+
+    #[test]
     fn it_tokenizes_identifiers() {
         let source = "foo bar baz";
         let mut lexer = Lexer::new(source);
